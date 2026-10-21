@@ -1,0 +1,12 @@
+//noStroke();
+createCanvas(400, 400);
+background("lightblue");
+fill("red");
+circle(200, 200, 80);
+fill("white");
+textFont("Impact", 36);
+textAlign(CENTER, CENTER);
+stroke("black");
+strokeWeight(3);
+text("Pop the Balloon!", 200, 200);
+//createImg("balloon.png", 200, 200, 80, 80);
