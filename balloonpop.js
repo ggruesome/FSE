@@ -5,10 +5,28 @@ let startTime = 0;
 let gameStarted = false;
 let gameOver = false;
 let gameDuration = 30;
+let popSound;
+let balloonImg;
+
+function preload() {
+  popSound = loadSound(MEDIA_FOLDER + "/pop.mp3");
+  balloonImg = loadImage(MEDIA_FOLDER + "/balloon.png");
+}
 
 function setup() {
   createCanvas(700, 450);
   textFont("Arial");
+
+  // Shrink the huge image once so drawing it every frame stays fast
+  balloonImg.resize(130, 0);
+
+  // Turn the red balloon white (keeping its shading) so tint() can color it.
+  // Draw it through a grayscale + brighten filter, then keep the result.
+  let g = createGraphics(balloonImg.width, balloonImg.height);
+  g.drawingContext.filter = "grayscale(100%) brightness(300%)";
+  g.image(balloonImg, 0, 0);
+  balloonImg = g.get();
+  g.remove();
 }
 
 function draw() {
@@ -64,12 +82,13 @@ function draw() {
 
     b.y -= b.speed;
 
-    stroke(230);
-    line(b.x, b.y + b.size / 2, b.x, b.y + b.size);
-
-    noStroke();
-    fill(b.shade);
-    ellipse(b.x, b.y, b.size, b.size * 1.2);
+    // The image includes the string, so it's much taller than it is wide.
+    // Shift it up so the round part of the balloon is centered on (b.x, b.y).
+    let w = b.size;
+    let h = w * (balloonImg.height / balloonImg.width);
+    tint(b.shade);
+    image(balloonImg, b.x - w / 2, b.y - h * 0.28, w, h);
+    noTint();
 
     // Remove balloons that leave the screen
     if (b.y < -50) {
@@ -102,7 +121,7 @@ function drawGameOver() {
   textSize(26);
   text("Final score: " + score, width / 2, 220);
 
-  drawButton("PLAY AGAIN", width / 2, 300);
+  drawButton("PLAY AGAIN?", width / 2, 300);
 }
 
 function drawButton(label, x, y) {
@@ -139,12 +158,14 @@ function mousePressed() {
     if (dist(mouseX, mouseY, b.x, b.y) < b.size * 0.6) {
       balloons.splice(i, 1);
       score++;
+      popSound.play();
       break;
     }
   }
 }
 
 function startGame() {
+  userStartAudio();
   score = 0;
   balloons = [];
   startTime = millis();
