@@ -12,12 +12,19 @@ let balloonImg;
 let popGif;
 let lightningImg;
 
+let balloonHighscore;
+
 // Called from preload() in main.js
 function balloonPreload() {
   popSound = loadSound(MEDIA_FOLDER + "/pop.mp3");
   balloonImg = loadImage(MEDIA_FOLDER + "/balloon.png");
   popGif = loadImage(MEDIA_FOLDER + "/pop.gif");
   lightningImg = loadImage(MEDIA_FOLDER + "/lightning.png");
+
+  balloonHighscore = getItem("balloonHighscore");
+  if (balloonHighscore === null) {
+    balloonHighscore = 0;
+  }
 }
 
 // Called from setup() in main.js
@@ -224,6 +231,20 @@ function drawGameOver() {
   textSize(26);
   text("Final score: " + score, width / 2, 220);
 
+  if (score > balloonHighscore) {
+    balloonHighscore = score;
+    storeItem("balloonHighscore", balloonHighscore);
+    fill(255, 220, 120);
+    textSize(22);
+    text("New highscore!", width / 2, 260);
+  } else {
+    fill(255, 220, 120);
+    textSize(22);
+    text("Highscore: " + balloonHighscore, width / 2, 260);
+  }
+
+  fill(255);
+  textSize(20);
   drawButton("PLAY AGAIN?", width / 2, 300);
   drawButton("EXIT", width / 2, 360);
 }

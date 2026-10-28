@@ -20,7 +20,7 @@ function draw() {
   } else if (currentScreen === "flowergarden") {
     drawGameScreen("FLOWER GARDEN");
   } else if (currentScreen === "coincollector") {
-    drawGameScreen("COIN COLLECTOR");
+    coinDraw();
   }
 }
 
@@ -28,15 +28,33 @@ function drawMenu() {
   fill(255, 220, 120);
   textAlign(CENTER, CENTER);
   textSize(44);
+  stroke("black");
+  strokeWeight(3);
   text("MAIN MENU", width / 2, 90);
 
   fill(255);
   textSize(20);
   text("Pick a game to play!", width / 2, 145);
 
-  drawButton("BALLOON POP", width / 2, 220);
-  drawButton("FLOWER GARDEN", width / 2, 290);
-  drawButton("COIN COLLECTOR", width / 2, 360);
+  drawButton("BALLOON POP", width / 2, 210);
+
+  drawButton("FLOWER GARDEN", width / 2, 300);
+
+  drawButton("COIN COLLECTOR", width / 2, 390);
+
+  //HighScores
+    //Balloon Pop
+  fill(255);
+  textSize(20);
+  text("Highscore: " + balloonHighscore, width / 2, 250);
+    //Flower Garden
+  fill(255);
+  textSize(20);
+  text("Highscore: " + flowerHighscore, width / 2, 340);
+    //Coin Collector
+  fill(255);
+  textSize(20);
+  text("Highscore: " + coinHighscore, width / 2, 430);
 }
 
 // Placeholder screen
@@ -84,12 +102,17 @@ function mousePressed() {
     return;
   }
 
+  if (currentScreen === "coincollector") {
+    coinMousePressed();
+    return;
+  }
+
   if (currentScreen === "menu") {
-    if (overButton(width / 2, 220)) {
+    if (overButton(width / 2, 210)) {
       currentScreen = "balloonpop";
-    } else if (overButton(width / 2, 290)) {
+    } else if (overButton(width / 2, 300)) {
       currentScreen = "flowergarden";
-    } else if (overButton(width / 2, 360)) {
+    } else if (overButton(width / 2, 390)) {
       currentScreen = "coincollector";
     }
     return;
@@ -97,6 +120,12 @@ function mousePressed() {
 
   if (overButton(width / 2, 310)) {
     currentScreen = "menu";
+  }
+}
+
+function mouseReleased() {
+  if (currentScreen === "coincollector") {
+    coinMouseReleased();
   }
 }
 

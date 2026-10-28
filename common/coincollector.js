@@ -11,6 +11,8 @@ let chestAnimation = 0;
 let lastSpawnTime = 0;
 let chestCorner = 0;
 
+let coinHighscore;
+
 const chest = {
   x: 590,
   y: 345,
@@ -25,13 +27,7 @@ const chestCorners = [
   { x: 585, y: 350 }
 ];
 
-function setup() {
-  createCanvas(700, 450);
-  textFont("Arial");
-}
-
-function draw() {
-  background(30, 27, 60);
+function coinDraw() {
   drawCoinBackground();
 
   if (!coinGameStarted) {
@@ -313,7 +309,13 @@ function drawCoinStartScreen() {
   text("The chest moves after every deposit.", width / 2, 210);
   text("Collect as many as possible in 30 seconds.", width / 2, 245);
 
-  drawCoinButton("START", width / 2, 325);
+  coinHighscore = getItem("coinHighscore");
+  if (coinHighscore === null) {
+    coinHighscore = 0;
+  }
+
+  drawButton("START", width / 2, 310);
+  drawButton("MENU", width / 2, 375);
 }
 
 function drawCoinGameOver() {
@@ -326,38 +328,43 @@ function drawCoinGameOver() {
   textSize(25);
   text("Coins deposited: " + coinScore, width / 2, 205);
 
+  // Store/Display Highscore
+  if (coinScore > coinHighscore) {
+    coinHighscore = coinScore;
+    storeItem("coinHighscore", coinHighscore);
+    fill(255, 220, 120);
+    textSize(20);
+    text("New highscore!", width / 2, 235);
+  } else {
+    fill(255);
+    textSize(20);
+    text("Highscore: " + coinHighscore, width / 2, 235);
+  }
+
   textSize(17);
   text("Great work practicing your coordination!", width / 2, 245);
 
-  drawCoinButton("PLAY AGAIN", width / 2, 315);
+  drawButton("PLAY AGAIN", width / 2, 300);
+  drawButton("EXIT", width / 2, 360);
 }
 
-function drawCoinButton(label, x, y) {
-  rectMode(CENTER);
-  noStroke();
-  fill(245, 90, 130);
-  rect(x, y, 180, 50, 10);
-
-  fill(255);
-  textSize(20);
-  textAlign(CENTER, CENTER);
-  text(label, x, y);
-
-  rectMode(CORNER);
-}
-
-function mousePressed() {
-  if (!coinGameStarted || coinGameOver) {
-    let buttonClicked =
-      mouseX > width / 2 - 90 &&
-      mouseX < width / 2 + 90 &&
-      mouseY > (coinGameOver ? 290 : 300) &&
-      mouseY < (coinGameOver ? 340 : 350);
-
-    if (buttonClicked) {
+// Called from mousePressed() in main.js while Coin Collector is showing
+function coinMousePressed() {
+  if (!coinGameStarted) {
+    if (overButton(width / 2, 310)) {
       startCoinGame();
+    } else if (overButton(width / 2, 375)) {
+      coinExitToMenu();
     }
+    return;
+  }
 
+  if (coinGameOver) {
+    if (overButton(width / 2, 300)) {
+      startCoinGame();
+    } else if (overButton(width / 2, 360)) {
+      coinExitToMenu();
+    }
     return;
   }
 
@@ -376,7 +383,8 @@ function mousePressed() {
   }
 }
 
-function mouseReleased() {
+// Called from mouseReleased() in main.js while Coin Collector is showing
+function coinMouseReleased() {
   if (!coinGameStarted || coinGameOver || draggedCoin === null) {
     return;
   }
@@ -421,4 +429,14 @@ function startCoinGame() {
   for (let i = 0; i < 5; i++) {
     spawnCoin();
   }
+}
+
+// Reset the game and go back to the main menu
+function coinExitToMenu() {
+  coinGameStarted = false;
+  coinGameOver = false;
+  coins = [];
+  draggedCoin = null;
+  coinScore = 0;
+  currentScreen = "menu";
 }

@@ -1,0 +1,1 @@
+let flowerHighscore = 0;
