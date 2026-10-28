@@ -65,6 +65,7 @@ function coinDraw() {
   textSize(22);
   textAlign(LEFT, CENTER);
   text("Coins: " + coinScore, 20, 25);
+  text("Highscore: " + coinHighscore, 20, 50);
 
   textAlign(RIGHT, CENTER);
   text("Time: " + timeLeft, width - 20, 25);

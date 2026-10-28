@@ -32,7 +32,7 @@ function drawMenu() {
   textSize(44);
   stroke("black");
   strokeWeight(3);
-  text("MAIN MENU", width / 2, 90);
+  text("F.M.R. ARCADE", width / 2, 90);
 
   fill(255);
   textSize(20);

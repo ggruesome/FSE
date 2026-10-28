@@ -88,6 +88,7 @@ function balloonDraw() {
   textSize(22);
   textAlign(LEFT, CENTER);
   text("Score: " + score, 20, 25);
+  text("Highscore: " + balloonHighscore, 20, 50);
 
   textAlign(RIGHT, CENTER);
   text("Time: " + timeLeft, width - 20, 25);
@@ -229,18 +230,18 @@ function drawGameOver() {
 
   fill(255);
   textSize(26);
-  text("Final score: " + score, width / 2, 220);
+  text("Final score: " + score, width / 2, 215);
 
   if (score > balloonHighscore) {
     balloonHighscore = score;
     storeItem("balloonHighscore", balloonHighscore);
     fill(255, 220, 120);
     textSize(22);
-    text("New highscore!", width / 2, 260);
+    text("New highscore!", width / 2, 255);
   } else {
     fill(255, 220, 120);
     textSize(22);
-    text("Highscore: " + balloonHighscore, width / 2, 260);
+    text("Highscore: " + balloonHighscore, width / 2, 255);
   }
 
   fill(255);
