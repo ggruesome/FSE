@@ -3,6 +3,7 @@ let currentScreen = "menu";
 function preload() {
   balloonPreload();
   coinPreload();
+  flowerPreload();
 }
 
 function setup() {

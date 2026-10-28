@@ -329,7 +329,7 @@ function drawCoinGameOver() {
 
   fill(255);
   textSize(25);
-  text("Coins deposited: " + coinScore, width / 2, 205);
+  text("Coins deposited: " + coinScore, width / 2, 200);
 
   // Store/Display Highscore
   if (coinScore > coinHighscore) {
@@ -337,18 +337,18 @@ function drawCoinGameOver() {
     storeItem("coinHighscore", coinHighscore);
     fill(255, 220, 120);
     textSize(20);
-    text("New highscore!", width / 2, 235);
+    text("New highscore!", width / 2, 255);
   } else {
     fill(255);
     textSize(20);
-    text("Highscore: " + coinHighscore, width / 2, 235);
+    text("Highscore: " + coinHighscore, width / 2, 255);
   }
 
   textSize(17);
-  text("Great work practicing your coordination!", width / 2, 245);
+  text("Great work practicing your coordination!", width / 2, 230);
 
-  drawButton("PLAY AGAIN", width / 2, 300);
-  drawButton("EXIT", width / 2, 360);
+  drawButton("PLAY AGAIN", width / 2, 310);
+  drawButton("EXIT", width / 2, 370);
 }
 
 // Called from mousePressed() in main.js while Coin Collector is showing
@@ -363,9 +363,9 @@ function coinMousePressed() {
   }
 
   if (coinGameOver) {
-    if (overButton(width / 2, 300)) {
+    if (overButton(width / 2, 310)) {
       startCoinGame();
-    } else if (overButton(width / 2, 360)) {
+    } else if (overButton(width / 2, 370)) {
       coinExitToMenu();
     }
     return;
