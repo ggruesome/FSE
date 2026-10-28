@@ -27,6 +27,14 @@ const chestCorners = [
   { x: 585, y: 350 }
 ];
 
+function coinPreload() {
+  // Highscores
+  coinHighscore = getItem("coinHighscore");
+  if (coinHighscore === null) {
+    coinHighscore = 0;
+  }
+}
+
 function coinDraw() {
   drawCoinBackground();
 
@@ -308,11 +316,6 @@ function drawCoinStartScreen() {
   text("Grab and drag coins into the treasure chest!", width / 2, 175);
   text("The chest moves after every deposit.", width / 2, 210);
   text("Collect as many as possible in 30 seconds.", width / 2, 245);
-
-  coinHighscore = getItem("coinHighscore");
-  if (coinHighscore === null) {
-    coinHighscore = 0;
-  }
 
   drawButton("START", width / 2, 310);
   drawButton("MENU", width / 2, 375);

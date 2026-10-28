@@ -2,6 +2,7 @@ let currentScreen = "menu";
 
 function preload() {
   balloonPreload();
+  coinPreload();
 }
 
 function setup() {
