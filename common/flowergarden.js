@@ -1,9 +1,621 @@
-let flowerHighscore;
 
-function flowerPreload() {
-  // Highscores
-  flowerHighscore = getItem("flowerHighscore");
-  if (flowerHighscore === null) {
-    flowerHighscore = 0;
+let gardenPlants = [];
+let gardenScore = 0;
+let gardenStartTime = 0;
+let gardenStarted = false;
+let gardenOver = false;
+let gardenDuration = 90;
+
+let draggedTool = null;
+let waterCanFilled = false;
+let gardenMessage = "Drag tools onto your plants to care for them!";
+
+const toolList = [
+  { id: "water", label: "Watering Can", color: [65, 155, 245] },
+  { id: "weed", label: "Shovel", color: [90, 175, 100] },
+  { id: "fertilize", label: "Fertilizer", color: [180, 115, 225] },
+  { id: "health", label: "Magnifier", color: [245, 180, 65] }
+];
+
+const plotX = [300, 435, 570];
+const plotY = [160, 265, 370];
+
+const waterBarrel = {
+  x: 710,
+  y: 120,
+  w: 75,
+  h: 90
+};
+
+function setup() {
+  createCanvas(800, 500);
+  textFont("Arial");
+  resetGarden();
+}
+
+function draw() {
+  background(30, 27, 60);
+
+  if (!gardenStarted) {
+    drawGardenStartScreen();
+    return;
+  }
+
+  if (gardenOver) {
+    drawGardenGameOver();
+    return;
+  }
+
+  let timeLeft = max(
+    0,
+    gardenDuration - floor((millis() - gardenStartTime) / 1000)
+  );
+
+  if (timeLeft <= 0) {
+    gardenOver = true;
+    draggedTool = null;
+    return;
+  }
+
+  drawGardenBackground();
+  drawGardenHUD(timeLeft);
+  drawWaterBarrel();
+  drawToolShelf();
+  drawGardenPlots();
+  drawGardenMessage();
+
+  // Draw the tool being dragged last, so it stays visible
+  if (draggedTool !== null) {
+    drawTool(
+      draggedTool.id,
+      mouseX,
+      mouseY,
+      draggedTool.id === "water" && waterCanFilled
+    );
+
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(12);
+
+    if (draggedTool.id === "water" && !waterCanFilled) {
+      text("Drag to barrel to fill", mouseX, mouseY + 42);
+    } else {
+      text("Release over a plot", mouseX, mouseY + 42);
+    }
   }
 }
+
+function resetGarden() {
+  gardenPlants = [];
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      gardenPlants.push({
+        x: plotX[col],
+        y: plotY[row],
+        plantType: floor(random(3)),
+        health: floor(random(45, 85)),
+        water: random(25, 75),
+        growth: random(0.4, 0.8),
+        weed: random() < 0.4
+      });
+    }
+  }
+}
+
+function drawGardenBackground() {
+  noStroke();
+  fill(65, 125, 65);
+  rect(0, 0, width, height);
+
+  // Grass details
+  for (let i = 0; i < 75; i++) {
+    let x = (i * 97) % width;
+    let y = (i * 61) % height;
+
+    stroke(80, 145, 75);
+    strokeWeight(2);
+    line(x, y, x + 4, y - 6);
+  }
+
+  noStroke();
+
+  // Garden fence
+  fill(120, 75, 45);
+  rect(190, 72, 500, 10);
+
+  for (let x = 200; x < 700; x += 70) {
+    rect(x, 60, 10, 30, 4);
+  }
+
+  drawFlower(220, 435, color(255, 220, 100));
+  drawFlower(665, 440, color(255, 150, 180));
+}
+
+function drawFlower(x, y, petalColor) {
+  noStroke();
+  fill(55, 110, 45);
+  rect(x - 2, y, 4, 15);
+
+  fill(petalColor);
+  for (let i = 0; i < 5; i++) {
+    let angle = TWO_PI * i / 5;
+    ellipse(
+      x + cos(angle) * 7,
+      y + sin(angle) * 7,
+      9,
+      9
+    );
+  }
+
+  fill(255, 220, 80);
+  ellipse(x, y, 8, 8);
+}
+
+function drawGardenHUD(timeLeft) {
+  fill(255, 220, 120);
+  textAlign(LEFT, CENTER);
+  textSize(22);
+  text("Score: " + gardenScore, 18, 25);
+
+  textAlign(RIGHT, CENTER);
+  text("Time: " + timeLeft, width - 18, 25);
+}
+
+function drawToolShelf() {
+  fill(35, 32, 70);
+  noStroke();
+  rect(10, 65, 155, 385, 15);
+
+  fill(255, 225, 145);
+  textAlign(CENTER, CENTER);
+  textSize(15);
+  text("DRAG A TOOL", 87, 85);
+
+  for (let i = 0; i < toolList.length; i++) {
+    let tool = toolList[i];
+    let x = 87;
+    let y = 140 + i * 88;
+
+    fill(tool.color[0], tool.color[1], tool.color[2]);
+    stroke(230);
+    strokeWeight(1);
+    rect(x - 65, y - 30, 130, 65, 10);
+
+    drawTool(
+      tool.id,
+      x,
+      y - 5,
+      tool.id === "water" && waterCanFilled
+    );
+
+    noStroke();
+    fill(255);
+    textSize(12);
+    text(tool.label, x, y + 20);
+  }
+
+  fill(255, 235, 180);
+  textSize(11);
+  text("Drag tools to plots", 87, 420);
+}
+
+function drawTool(id, x, y, filled) {
+  push();
+  textAlign(CENTER, CENTER);
+  noStroke();
+
+  if (id === "water") {
+    // Watering can body
+    fill(45, 115, 220);
+    rect(x - 16, y - 9, 31, 20, 5);
+
+    // Handle
+    noFill();
+    stroke(30, 65, 130);
+    strokeWeight(4);
+    arc(x - 17, y, 23, 23, HALF_PI, PI + HALF_PI);
+
+    // Spout
+    stroke(45, 115, 220);
+    strokeWeight(7);
+    line(x + 10, y - 7, x + 23, y - 15);
+    line(x + 23, y - 15, x + 29, y - 12);
+
+    // Water visible inside a filled can
+    if (filled) {
+      noStroke();
+      fill(100, 220, 255);
+      ellipse(x, y - 8, 13, 5);
+    }
+
+    // Water drops
+    if (filled) {
+      fill(100, 220, 255);
+      ellipse(x + 30, y + 1, 5, 8);
+    }
+  }
+
+  if (id === "weed") {
+    // Shovel blade
+    fill(190, 205, 225);
+    stroke(70, 80, 105);
+    strokeWeight(1);
+    triangle(
+      x - 13, y + 1,
+      x + 13, y + 1,
+      x, y + 17
+    );
+
+    // Handle
+    stroke(155, 90, 45);
+    strokeWeight(5);
+    line(x, y, x + 9, y - 15);
+
+    stroke(230, 145, 65);
+    strokeWeight(7);
+    line(x + 8, y - 17, x + 13, y - 22);
+  }
+
+  if (id === "fertilize") {
+    // Fertilizer bag
+    fill(220, 190, 125);
+    stroke(125, 90, 45);
+    strokeWeight(1);
+    rect(x - 14, y - 17, 28, 34, 5);
+
+    noStroke();
+    fill(75, 140, 60);
+    ellipse(x, y + 1, 13, 8);
+    line(x, y + 1, x + 5, y - 5);
+
+    fill(255);
+    textSize(9);
+    text("+", x, y - 9);
+  }
+
+  if (id === "health") {
+    // Magnifying glass
+    stroke(65, 65, 85);
+    strokeWeight(5);
+    line(x + 7, y + 7, x + 18, y + 18);
+
+    fill(100, 205, 255);
+    stroke(220);
+    strokeWeight(2);
+    ellipse(x - 3, y - 3, 26, 26);
+
+    noStroke();
+    fill(220, 250, 255, 180);
+    ellipse(x - 8, y - 8, 7, 7);
+  }
+
+  pop();
+}
+
+function drawWaterBarrel() {
+  // Platform
+  noStroke();
+  fill(120, 75, 45);
+  rect(waterBarrel.x - 40, waterBarrel.y + 38, 80, 12, 4);
+
+  // Barrel body
+  fill(40, 105, 190);
+  stroke(25, 60, 115);
+  strokeWeight(3);
+  rect(
+    waterBarrel.x - 28,
+    waterBarrel.y - 12,
+    56,
+    62,
+    10
+  );
+
+  // Barrel opening
+  fill(30, 70, 130);
+  ellipse(waterBarrel.x, waterBarrel.y - 12, 56, 20);
+
+  fill(65, 165, 235);
+  ellipse(waterBarrel.x, waterBarrel.y - 12, 42, 12);
+
+  noStroke();
+  fill(255, 225, 145);
+  textAlign(CENTER, CENTER);
+  textSize(12);
+  text("WATER", waterBarrel.x, waterBarrel.y + 62);
+
+  if (!waterCanFilled) {
+    fill(150, 225, 255);
+    textSize(11);
+    text("Fill can here", waterBarrel.x, waterBarrel.y + 77);
+  }
+}
+
+function drawGardenPlots() {
+  for (let p of gardenPlants) {
+    // Soil
+    noStroke();
+    fill(100, 60, 40);
+    rect(p.x - 53, p.y - 29, 106, 60, 10);
+
+    fill(125, 80, 50);
+    for (let j = 0; j < 5; j++) {
+      ellipse(
+        p.x - 40 + j * 18,
+        p.y + 20 + (j % 2) * 4,
+        4,
+        4
+      );
+    }
+
+    // Health bar
+    fill(25, 35, 30);
+    rect(p.x - 30, p.y - 43, 60, 7, 4);
+
+    if (p.health > 65) {
+      fill(80, 230, 100);
+    } else if (p.health > 35) {
+      fill(255, 200, 65);
+    } else {
+      fill(245, 85, 90);
+    }
+
+    rect(
+      p.x - 30,
+      p.y - 43,
+      60 * constrain(p.health / 100, 0, 1),
+      7,
+      4
+    );
+
+    drawPlant(p);
+
+    if (p.weed) {
+      drawWeed(p.x + 34, p.y + 5);
+    }
+
+    // Show a water warning when a plant is thirsty
+    if (p.water < 30) {
+      fill(100, 210, 255);
+      textSize(13);
+      text("!", p.x - 38, p.y - 15);
+    }
+  }
+}
+
+function drawPlant(p) {
+  let plantSize = 20 + p.growth * 18;
+
+  stroke(40, 95, 40);
+  strokeWeight(4);
+  line(p.x, p.y + 18, p.x, p.y - 5);
+
+  noStroke();
+
+  if (p.health < 25) {
+    fill(150, 125, 70);
+  } else {
+    fill(65, 140 + p.health * 0.5, 55);
+  }
+
+  ellipse(p.x - 10, p.y + 3, plantSize, plantSize * 0.6);
+  ellipse(p.x + 10, p.y - 5, plantSize, plantSize * 0.6);
+
+  if (p.plantType === 0) {
+    fill(240, 85, 75);
+    ellipse(p.x, p.y - 12, 17, 17);
+  } else if (p.plantType === 1) {
+    fill(255, 210, 65);
+    ellipse(p.x, p.y - 15, 15, 15);
+  } else {
+    fill(185, 120, 245);
+    ellipse(p.x, p.y - 15, 14, 14);
+  }
+}
+
+function drawWeed(x, y) {
+  stroke(35, 90, 35);
+  strokeWeight(3);
+  line(x, y + 10, x, y - 5);
+  line(x, y + 5, x - 8, y - 2);
+  line(x, y + 5, x + 8, y - 4);
+
+  noStroke();
+  fill(90, 170, 65);
+  ellipse(x - 8, y - 2, 10, 6);
+  ellipse(x + 8, y - 4, 10, 6);
+  ellipse(x, y - 5, 8, 12);
+}
+
+function drawGardenMessage() {
+  noStroke();
+  fill(25, 25, 55, 230);
+  rect(190, 455, 500, 30, 8);
+
+  fill(255, 240, 180);
+  textAlign(CENTER, CENTER);
+  textSize(13);
+  text(gardenMessage, 440, 470);
+}
+
+function drawGardenStartScreen() {
+  fill(255, 220, 120);
+  textAlign(CENTER, CENTER);
+  textSize(40);
+  text("GROW GARDEN", width / 2, 140);
+
+  fill(255);
+  textSize(19);
+  text("Fill your watering can, then drag it to a plant.", width / 2, 205);
+  text("Use tools to remove weeds, fertilize, and inspect.", width / 2, 240);
+
+  drawGardenButton("START GARDENING", width / 2, 320);
+}
+
+function drawGardenGameOver() {
+  fill(255, 220, 120);
+  textAlign(CENTER, CENTER);
+  textSize(38);
+  text("GARDEN TIME'S UP!", width / 2, 145);
+
+  fill(255);
+  textSize(25);
+  text("Care score: " + gardenScore, width / 2, 210);
+
+  textSize(17);
+  text("Every little bit of care helps your garden grow!", width / 2, 250);
+
+  drawGardenButton("PLAY AGAIN", width / 2, 320);
+}
+
+function drawGardenButton(label, x, y) {
+  rectMode(CENTER);
+  noStroke();
+  fill(90, 175, 100);
+  rect(x, y, 220, 52, 10);
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  text(label, x, y);
+
+  rectMode(CORNER);
+}
+
+function mousePressed() {
+  if (!gardenStarted || gardenOver) {
+    let clickedButton =
+      mouseX > width / 2 - 110 &&
+      mouseX < width / 2 + 110 &&
+      mouseY > 294 &&
+      mouseY < 346;
+
+    if (clickedButton) {
+      startGardenGame();
+    }
+
+    return;
+  }
+
+  // Start dragging a tool from the shelf
+  for (let i = 0; i < toolList.length; i++) {
+    let tool = toolList[i];
+    let x = 87;
+    let y = 140 + i * 88;
+
+    if (
+      mouseX > x - 65 &&
+      mouseX < x + 65 &&
+      mouseY > y - 30 &&
+      mouseY < y + 35
+    ) {
+      draggedTool = { id: tool.id };
+      return;
+    }
+  }
+}
+
+function mouseReleased() {
+  if (!gardenStarted || gardenOver || draggedTool === null) {
+    draggedTool = null;
+    return;
+  }
+
+  let tool = draggedTool.id;
+
+  // Watering can: first fill it at the barrel
+  if (tool === "water" && !waterCanFilled) {
+    if (
+      dist(mouseX, mouseY, waterBarrel.x, waterBarrel.y) < 65
+    ) {
+      waterCanFilled = true;
+      gardenMessage = "Watering can filled! Now drag it to a plant.";
+    } else {
+      gardenMessage = "Take the empty watering can to the barrel first.";
+    }
+
+    draggedTool = null;
+    return;
+  }
+
+  // Drop a tool onto a plant plot
+  let targetPlant = null;
+
+  for (let p of gardenPlants) {
+    if (
+      mouseX > p.x - 55 &&
+      mouseX < p.x + 55 &&
+      mouseY > p.y - 30 &&
+      mouseY < p.y + 35
+    ) {
+      targetPlant = p;
+      break;
+    }
+  }
+
+  if (targetPlant === null) {
+    gardenMessage = "Drop the tool directly onto a garden plot.";
+    draggedTool = null;
+    return;
+  }
+
+  careForPlant(targetPlant, tool);
+  draggedTool = null;
+}
+
+function careForPlant(p, tool) {
+  if (tool === "water") {
+    if (!waterCanFilled) {
+      gardenMessage = "Your watering can is empty. Refill it at the barrel!";
+      return;
+    }
+
+    p.water = min(100, p.water + 40);
+    p.health = min(100, p.health + 12);
+    p.growth = min(1, p.growth + 0.08);
+
+    waterCanFilled = false;
+    gardenScore += 2;
+    gardenMessage = "Water poured! Refill the can for another plant.";
+  }
+
+  if (tool === "weed") {
+    if (p.weed) {
+      p.weed = false;
+      p.health = min(100, p.health + 15);
+      gardenScore += 5;
+      gardenMessage = "Weeds removed! Your plant can grow better.";
+    } else {
+      gardenMessage = "No weeds here. Try a plot with visible weeds.";
+    }
+  }
+
+  if (tool === "fertilize") {
+    p.growth = min(1, p.growth + 0.2);
+    p.health = min(100, p.health + 8);
+    gardenScore += 3;
+    gardenMessage = "Fertilizer added! Your plant is growing.";
+  }
+
+  if (tool === "health") {
+    gardenMessage =
+      "Health: " + round(p.health) +
+      "% | Water: " + round(p.water) + "%" +
+      (p.weed ? " | Weeds present!" : " | No weeds.");
+  }
+}
+
+function startGardenGame() {
+  resetGarden();
+
+  gardenScore = 0;
+  waterCanFilled = false;
+  draggedTool = null;
+  gardenMessage = "Drag the watering can to the barrel to fill it!";
+  gardenStartTime = millis();
+
+  gardenStarted = true;
+  gardenOver = false;
+}
+
