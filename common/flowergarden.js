@@ -13,6 +13,11 @@ let draggedTool = null;
 let waterCanFilled = false;
 let gardenMessage = "Drag tools onto your plants to care for them!";
 
+let wateringCanImg;
+let wateringCanFullImg;
+let shovelImg;
+let fertilizerImg;
+
 const toolList = [
   { id: "water", label: "Watering Can", color: [65, 155, 245] },
   { id: "weed", label: "Shovel", color: [90, 175, 100] },
@@ -31,6 +36,12 @@ const waterBarrel = {
 };
 
 function flowerPreload() {
+    // Tool images
+    wateringCanImg = loadImage(MEDIA_FOLDER + "/WateringCan.png");
+    wateringCanFullImg = loadImage(MEDIA_FOLDER + "/WateringCanFull.png");
+    shovelImg = loadImage(MEDIA_FOLDER + "/shovel.png");
+    fertilizerImg = loadImage(MEDIA_FOLDER + "/fertilizer.png");
+
     // Highscore
     flowerHighscore = getItem("flowerHighscore");
     if (flowerHighscore === null) {
@@ -39,7 +50,45 @@ function flowerPreload() {
 }
 
 function flowerSetup() {
+  // fertilizer.png has a white background, so crop it and make the outside clear
+  fertilizerImg = fertilizerImg.get(175, 120, 675, 785);
+  clearWhiteEdges(fertilizerImg);
   resetGarden();
+}
+
+// Turns white pixels touching the image edges transparent, scanning in from each side
+function clearWhiteEdges(img) {
+  img.loadPixels();
+  let w = img.width;
+  let h = img.height;
+
+  function clearIfWhite(x, y) {
+    let i = 4 * (y * w + x);
+    let p = img.pixels;
+    if (p[i] > 235 && p[i + 1] > 235 && p[i + 2] > 235) {
+      p[i + 3] = 0;
+      return true;
+    }
+    return false;
+  }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w && clearIfWhite(x, y); x++) {}
+    for (let x = w - 1; x >= 0 && clearIfWhite(x, y); x--) {}
+  }
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h && clearIfWhite(x, y); y++) {}
+    for (let y = h - 1; y >= 0 && clearIfWhite(x, y); y--) {}
+  }
+
+  img.updatePixels();
+}
+
+// Draws an image centered at x, y, scaled to fit inside maxW x maxH
+function drawToolImage(img, x, y, maxW, maxH) {
+  let s = min(maxW / img.width, maxH / img.height);
+  imageMode(CENTER);
+  image(img, x, y, img.width * s, img.height * s);
 }
 
 function flowerDraw() {
@@ -231,72 +280,15 @@ function drawTool(id, x, y, filled) {
   noStroke();
 
   if (id === "water") {
-    // Watering can body
-    fill(45, 115, 220);
-    rect(x - 16, y - 9, 31, 20, 5);
-
-    // Handle
-    noFill();
-    stroke(30, 65, 130);
-    strokeWeight(4);
-    arc(x - 17, y, 23, 23, HALF_PI, PI + HALF_PI);
-
-    // Spout
-    stroke(45, 115, 220);
-    strokeWeight(7);
-    line(x + 10, y - 7, x + 23, y - 15);
-    line(x + 23, y - 15, x + 29, y - 12);
-
-    // Water visible inside a filled can
-    if (filled) {
-      noStroke();
-      fill(100, 220, 255);
-      ellipse(x, y - 8, 13, 5);
-    }
-
-    // Water drops
-    if (filled) {
-      fill(100, 220, 255);
-      ellipse(x + 30, y + 1, 5, 8);
-    }
+    drawToolImage(filled ? wateringCanFullImg : wateringCanImg, x, y, 48, 36);
   }
 
   if (id === "weed") {
-    // Shovel blade
-    fill(190, 205, 225);
-    stroke(70, 80, 105);
-    strokeWeight(1);
-    triangle(
-      x - 13, y + 1,
-      x + 13, y + 1,
-      x, y + 17
-    );
-
-    // Handle
-    stroke(155, 90, 45);
-    strokeWeight(5);
-    line(x, y, x + 9, y - 15);
-
-    stroke(230, 145, 65);
-    strokeWeight(7);
-    line(x + 8, y - 17, x + 13, y - 22);
+    drawToolImage(shovelImg, x, y, 44, 42);
   }
 
   if (id === "fertilize") {
-    // Fertilizer bag
-    fill(220, 190, 125);
-    stroke(125, 90, 45);
-    strokeWeight(1);
-    rect(x - 14, y - 17, 28, 34, 5);
-
-    noStroke();
-    fill(75, 140, 60);
-    ellipse(x, y + 1, 13, 8);
-    line(x, y + 1, x + 5, y - 5);
-
-    fill(255);
-    textSize(9);
-    text("+", x, y - 9);
+    drawToolImage(fertilizerImg, x, y, 40, 36);
   }
 
   if (id === "health") {
