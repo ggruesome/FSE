@@ -6,6 +6,9 @@ let gardenStarted = false;
 let gardenOver = false;
 let gardenDuration = 90;
 
+let flowerHighscore;
+let gardenNewHighscore = false;
+
 let draggedTool = null;
 let waterCanFilled = false;
 let gardenMessage = "Drag tools onto your plants to care for them!";
@@ -17,23 +20,29 @@ const toolList = [
   { id: "health", label: "Magnifier", color: [245, 180, 65] }
 ];
 
-const plotX = [300, 435, 570];
-const plotY = [160, 265, 370];
+const plotX = [255, 380, 505];
+const plotY = [140, 235, 330];
 
 const waterBarrel = {
-  x: 710,
-  y: 120,
+  x: 625,
+  y: 125,
   w: 75,
   h: 90
 };
 
-function setup() {
-  createCanvas(800, 500);
-  textFont("Arial");
+function flowerPreload() {
+    // Highscore
+    flowerHighscore = getItem("flowerHighscore");
+    if (flowerHighscore === null) {
+      flowerHighscore = 0;
+    }
+}
+
+function flowerSetup() {
   resetGarden();
 }
 
-function draw() {
+function flowerDraw() {
   background(30, 27, 60);
 
   if (!gardenStarted) {
@@ -54,6 +63,13 @@ function draw() {
   if (timeLeft <= 0) {
     gardenOver = true;
     draggedTool = null;
+
+    // Store Highscore
+    gardenNewHighscore = gardenScore > flowerHighscore;
+    if (gardenNewHighscore) {
+      flowerHighscore = gardenScore;
+      storeItem("flowerHighscore", flowerHighscore);
+    }
     return;
   }
 
@@ -63,6 +79,7 @@ function draw() {
   drawToolShelf();
   drawGardenPlots();
   drawGardenMessage();
+  drawGardenMenuButton();
 
   // Draw the tool being dragged last, so it stays visible
   if (draggedTool !== null) {
@@ -123,14 +140,14 @@ function drawGardenBackground() {
 
   // Garden fence
   fill(120, 75, 45);
-  rect(190, 72, 500, 10);
+  rect(180, 62, 390, 10);
 
-  for (let x = 200; x < 700; x += 70) {
-    rect(x, 60, 10, 30, 4);
+  for (let x = 190; x < 570; x += 63) {
+    rect(x, 50, 10, 30, 4);
   }
 
-  drawFlower(220, 435, color(255, 220, 100));
-  drawFlower(665, 440, color(255, 150, 180));
+  drawFlower(190, 388, color(255, 220, 100));
+  drawFlower(615, 380, color(255, 150, 180));
 }
 
 function drawFlower(x, y, petalColor) {
@@ -159,6 +176,13 @@ function drawGardenHUD(timeLeft) {
   textSize(22);
   text("Score: " + gardenScore, 18, 25);
 
+  fill(255);
+  textSize(14);
+  text("Highscore: " + flowerHighscore, 18, 45);
+
+  fill(255, 220, 120);
+  textSize(22);
+
   textAlign(RIGHT, CENTER);
   text("Time: " + timeLeft, width - 18, 25);
 }
@@ -166,22 +190,22 @@ function drawGardenHUD(timeLeft) {
 function drawToolShelf() {
   fill(35, 32, 70);
   noStroke();
-  rect(10, 65, 155, 385, 15);
+  rect(10, 55, 140, 350, 15);
 
   fill(255, 225, 145);
   textAlign(CENTER, CENTER);
   textSize(15);
-  text("DRAG A TOOL", 87, 85);
+  text("DRAG A TOOL", 80, 72);
 
   for (let i = 0; i < toolList.length; i++) {
     let tool = toolList[i];
-    let x = 87;
-    let y = 140 + i * 88;
+    let x = 80;
+    let y = 115 + i * 76;
 
     fill(tool.color[0], tool.color[1], tool.color[2]);
     stroke(230);
     strokeWeight(1);
-    rect(x - 65, y - 30, 130, 65, 10);
+    rect(x - 60, y - 30, 120, 65, 10);
 
     drawTool(
       tool.id,
@@ -198,7 +222,7 @@ function drawToolShelf() {
 
   fill(255, 235, 180);
   textSize(11);
-  text("Drag tools to plots", 87, 420);
+  text("Drag tools to plots", 80, 392);
 }
 
 function drawTool(id, x, y, filled) {
@@ -431,12 +455,21 @@ function drawWeed(x, y) {
 function drawGardenMessage() {
   noStroke();
   fill(25, 25, 55, 230);
-  rect(190, 455, 500, 30, 8);
+  rect(165, 415, 445, 28, 8);
 
   fill(255, 240, 180);
   textAlign(CENTER, CENTER);
   textSize(13);
-  text(gardenMessage, 440, 470);
+  text(gardenMessage, 387, 429);
+}
+
+// Small button in the corner to leave mid-game
+function drawGardenMenuButton() {
+  drawButton("MENU", 655, 429, color(250, 175, 40), 70, 28);
+}
+
+function overGardenMenuButton() {
+  return overButton(655, 429, 70, 28);
 }
 
 function drawGardenStartScreen() {
@@ -450,63 +483,63 @@ function drawGardenStartScreen() {
   text("Fill your watering can, then drag it to a plant.", width / 2, 205);
   text("Use tools to remove weeds, fertilize, and inspect.", width / 2, 240);
 
-  drawGardenButton("START GARDENING", width / 2, 320);
+  drawButton("START GARDENING", width / 2, 310, color(250, 175, 40));
+  drawButton("MENU", width / 2, 375, color(250, 175, 40));
 }
 
 function drawGardenGameOver() {
   fill(255, 220, 120);
   textAlign(CENTER, CENTER);
   textSize(38);
-  text("GARDEN TIME'S UP!", width / 2, 145);
+  text("GARDEN TIME'S UP!", width / 2, 130);
 
   fill(255);
   textSize(25);
-  text("Care score: " + gardenScore, width / 2, 210);
+  text("Care score: " + gardenScore, width / 2, 185);
 
-  textSize(17);
-  text("Every little bit of care helps your garden grow!", width / 2, 250);
-
-  drawGardenButton("PLAY AGAIN", width / 2, 320);
-}
-
-function drawGardenButton(label, x, y) {
-  rectMode(CENTER);
-  noStroke();
-  fill(90, 175, 100);
-  rect(x, y, 220, 52, 10);
+  // Display Highscore
+  if (gardenNewHighscore) {
+    fill(255, 220, 120);
+    textSize(20);
+    text("New highscore!", width / 2, 222);
+  } else {
+    fill(255);
+    textSize(20);
+    text("Highscore: " + flowerHighscore, width / 2, 222);
+  }
 
   fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(18);
-  text(label, x, y);
+  textSize(17);
+  text("Every little bit of care helps your garden grow!", width / 2, 258);
 
-  rectMode(CORNER);
+  drawButton("PLAY AGAIN", width / 2, 310, color(250, 175, 40));
+  drawButton("MENU", width / 2, 375, color(250, 175, 40));
 }
 
-function mousePressed() {
+function flowerMousePressed() {
   if (!gardenStarted || gardenOver) {
-    let clickedButton =
-      mouseX > width / 2 - 110 &&
-      mouseX < width / 2 + 110 &&
-      mouseY > 294 &&
-      mouseY < 346;
-
-    if (clickedButton) {
+    if (overButton(width / 2, 310)) {
       startGardenGame();
+    } else if (overButton(width / 2, 375)) {
+      flowerExitToMenu();
     }
+    return;
+  }
 
+  if (overGardenMenuButton()) {
+    flowerExitToMenu();
     return;
   }
 
   // Start dragging a tool from the shelf
   for (let i = 0; i < toolList.length; i++) {
     let tool = toolList[i];
-    let x = 87;
-    let y = 140 + i * 88;
+    let x = 80;
+    let y = 115 + i * 76;
 
     if (
-      mouseX > x - 65 &&
-      mouseX < x + 65 &&
+      mouseX > x - 60 &&
+      mouseX < x + 60 &&
       mouseY > y - 30 &&
       mouseY < y + 35
     ) {
@@ -516,7 +549,7 @@ function mousePressed() {
   }
 }
 
-function mouseReleased() {
+function flowerMouseReleased() {
   if (!gardenStarted || gardenOver || draggedTool === null) {
     draggedTool = null;
     return;
@@ -619,3 +652,12 @@ function startGardenGame() {
   gardenOver = false;
 }
 
+// Reset the game and go back to the main menu
+function flowerExitToMenu() {
+  gardenStarted = false;
+  gardenOver = false;
+  draggedTool = null;
+  waterCanFilled = false;
+  gardenScore = 0;
+  currentScreen = "menu";
+}

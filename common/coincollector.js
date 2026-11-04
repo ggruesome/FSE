@@ -318,8 +318,8 @@ function drawCoinStartScreen() {
   text("The chest moves after every deposit.", width / 2, 210);
   text("Collect as many as possible in 30 seconds.", width / 2, 245);
 
-  drawButton("START", width / 2, 310);
-  drawButton("MENU", width / 2, 375);
+  drawButton("START", width / 2, 310, color(30, 170, 150));
+  drawButton("MENU", width / 2, 375, color(30, 170, 150));
 }
 
 function drawCoinGameOver() {
@@ -348,8 +348,8 @@ function drawCoinGameOver() {
   textSize(17);
   text("Great work practicing your coordination!", width / 2, 230);
 
-  drawButton("PLAY AGAIN", width / 2, 310);
-  drawButton("EXIT", width / 2, 370);
+  drawButton("PLAY AGAIN", width / 2, 310, color(30, 170, 150));
+  drawButton("EXIT", width / 2, 370, color(30, 170, 150));
 }
 
 // Called from mousePressed() in main.js while Coin Collector is showing

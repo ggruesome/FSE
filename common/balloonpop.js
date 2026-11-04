@@ -218,8 +218,8 @@ if (frameCount % 120 === 0 && balloons.length < 10) {
   text("Click the balloons to pop them!", width / 2, 200);
   text("Pop as many as possible in 30 seconds.", width / 2, 235);
 
-  drawButton("START", width / 2, 300);
-  drawButton("MENU", width / 2, 370);
+  drawButton("START", width / 2, 300, color(40, 160, 230));
+  drawButton("MENU", width / 2, 370, color(40, 160, 230));
 }
 
 function drawGameOver() {
@@ -246,8 +246,8 @@ function drawGameOver() {
 
   fill(255);
   textSize(20);
-  drawButton("PLAY AGAIN?", width / 2, 300);
-  drawButton("EXIT", width / 2, 360);
+  drawButton("PLAY AGAIN?", width / 2, 300, color(40, 160, 230));
+  drawButton("EXIT", width / 2, 360, color(40, 160, 230));
 }
 
 function drawConfirmQuit() {
@@ -260,8 +260,8 @@ function drawConfirmQuit() {
   textSize(18);
   text("Your score will be lost.", width / 2, 215);
 
-  drawButton("YES", width / 2 - 125, 290);
-  drawButton("NO", width / 2 + 125, 290);
+  drawButton("YES", width / 2 - 125, 290, color(40, 160, 230));
+  drawButton("NO", width / 2 + 125, 290, color(40, 160, 230));
 }
 
 // Called from mousePressed() in main.js while Balloon Pop is showing

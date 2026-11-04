@@ -12,6 +12,7 @@ function setup() {
   createCanvas(700, 450);
   textFont("Arial");
   balloonSetup();
+  flowerSetup();
 }
 
 function draw() {
@@ -22,7 +23,7 @@ function draw() {
   } else if (currentScreen === "balloonpop") {
     balloonDraw();
   } else if (currentScreen === "flowergarden") {
-    drawGameScreen("FLOWER GARDEN");
+    flowerDraw();
   } else if (currentScreen === "coincollector") {
     coinDraw();
   }
@@ -61,65 +62,34 @@ function drawMenu() {
   text("Highscore: " + coinHighscore, width / 2, 428);
 }
 
-// Placeholder screen
-function drawGameScreen(title) {
-  fill(255, 220, 120);
-  textAlign(CENTER, CENTER);
-  textSize(40);
-  text(title, width / 2, 160);
-
-  fill(255);
-  textSize(20);
-  text("Coming soon!", width / 2, 215);
-
-  drawButton("BACK", width / 2, 310);
-}
-
 // True if the mouse is over a button drawn by drawButton at (x, y)
-function overButton(x, y) {
-  return mouseX > x - 110 && mouseX < x + 110 && mouseY > y - 25 && mouseY < y + 25;
+function overButton(x, y, w = 220, h = 50) {
+  return mouseX > x - w / 2 && mouseX < x + w / 2 && mouseY > y - h / 2 && mouseY < y + h / 2;
 }
 
-// Pass a color to draw the tinted button image instead of a plain rectangle
-function drawButton(label, x, y, col) {
-  rectMode(CENTER);
+// Draws the tinted button image; w and h are the clickable size
+function drawButton(label, x, y, col, w = 220, h = 50) {
   imageMode(CENTER);
   noStroke();
 
-  if (col) {
-    // Lighten the tint when the mouse is over it
-    if (overButton(x, y)) {
-      tint(lerpColor(col, color(255), 0.25));
-    } else {
-      tint(col);
-    }
-    image(buttonImg, x, y + 3, 240, 62);
-    noTint();
-
-    // Outlined text so it stays readable on light colors
-    stroke(0, 90);
-    strokeWeight(3);
-    fill(255);
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text(label, x, y);
-    noStroke();
+  // Lighten the tint when the mouse is over it
+  if (overButton(x, y, w, h)) {
+    tint(lerpColor(col, color(255), 0.25));
   } else {
-    // Lighten the button when the mouse is over it
-    if (overButton(x, y)) {
-      fill(255, 120, 155);
-    } else {
-      fill(245, 90, 130);
-    }
-    rect(x, y, 220, 50, 10);
-
-    fill(255);
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text(label, x, y);
+    tint(col);
   }
+  image(buttonImg, x, y + 3, w + 20, h + 12);
+  noTint();
 
-  rectMode(CORNER);
+  // Outlined text so it stays readable on light colors
+  stroke(0, 90);
+  strokeWeight(3);
+  fill(255);
+  textSize(h * 0.4);
+  textAlign(CENTER, CENTER);
+  text(label, x, y);
+  noStroke();
+
   imageMode(CORNER);
 }
 
@@ -134,6 +104,11 @@ function mousePressed() {
     return;
   }
 
+  if (currentScreen === "flowergarden") {
+    flowerMousePressed();
+    return;
+  }
+
   if (currentScreen === "menu") {
     if (overButton(width / 2, 190)) {
       currentScreen = "balloonpop";
@@ -144,15 +119,13 @@ function mousePressed() {
     }
     return;
   }
-
-  if (overButton(width / 2, 310)) {
-    currentScreen = "menu";
-  }
 }
 
 function mouseReleased() {
   if (currentScreen === "coincollector") {
     coinMouseReleased();
+  } else if (currentScreen === "flowergarden") {
+    flowerMouseReleased();
   }
 }
 
