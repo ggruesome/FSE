@@ -1,3 +1,4 @@
+const MEDIA_FOLDER = 'media';
 let currentScreen = "menu";
 let buttonImg;
 
