@@ -336,6 +336,7 @@ function drawCoinGameOver() {
   if (coinScore > coinHighscore) {
     coinHighscore = coinScore;
     storeItem("coinHighscore", coinHighscore);
+    playHighscoreSound();
     fill(255, 220, 120);
     textSize(20);
     text("New highscore!", width / 2, 255);

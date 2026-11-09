@@ -235,6 +235,7 @@ function drawGameOver() {
   if (score > balloonHighscore) {
     balloonHighscore = score;
     storeItem("balloonHighscore", balloonHighscore);
+    playHighscoreSound();
     fill(255, 220, 120);
     textSize(22);
     text("New highscore!", width / 2, 255);

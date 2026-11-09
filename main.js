@@ -1,9 +1,21 @@
 const MEDIA_FOLDER = 'media';
 let currentScreen = "menu";
 let buttonImg;
+let gameMusic;
+let highscoreSound;
+let clickSound;
+let mouseOverButton = false;
 
 function preload() {
   buttonImg = loadImage(MEDIA_FOLDER + "/button.png");
+  gameMusic = loadSound(MEDIA_FOLDER + "/Audio/GameMusicLoop.mp3");
+  highscoreSound = loadSound(MEDIA_FOLDER + "/Audio/Highscore.mp3");
+  clickSound = loadSound(MEDIA_FOLDER + "/Audio/click.wav");
+
+  // Volume from 0 (silent) to 1 (full)
+  gameMusic.setVolume(0.2);
+  highscoreSound.setVolume(0.4);
+  clickSound.setVolume(0.4);
   balloonPreload();
   coinPreload();
   flowerPreload();
@@ -18,6 +30,8 @@ function setup() {
 
 function draw() {
   background(30, 27, 60);
+  updateMusic();
+  mouseOverButton = false;
 
   if (currentScreen === "menu") {
     drawMenu();
@@ -63,6 +77,34 @@ function drawMenu() {
   text("Highscore: " + coinHighscore, width / 2, 428);
 }
 
+// True while one of the games is actually being played (not on a start, game over or quit screen)
+function isGameActive() {
+  if (currentScreen === "balloonpop") {
+    return gameStarted && !gameOver && !confirmQuit;
+  } else if (currentScreen === "flowergarden") {
+    return gardenStarted && !gardenOver;
+  } else if (currentScreen === "coincollector") {
+    return coinGameStarted && !coinGameOver;
+  }
+  return false;
+}
+
+// Loop the game music during gameplay and stop it everywhere else
+function updateMusic() {
+  if (isGameActive()) {
+    if (!gameMusic.isPlaying()) {
+      gameMusic.loop();
+    }
+  } else if (gameMusic.isPlaying()) {
+    gameMusic.stop();
+  }
+}
+
+// Play the highscore jingle (called by each game when a new highscore is set)
+function playHighscoreSound() {
+  highscoreSound.play();
+}
+
 // True if the mouse is over a button drawn by drawButton at (x, y)
 function overButton(x, y, w = 220, h = 50) {
   return mouseX > x - w / 2 && mouseX < x + w / 2 && mouseY > y - h / 2 && mouseY < y + h / 2;
@@ -75,6 +117,7 @@ function drawButton(label, x, y, col, w = 220, h = 50) {
 
   // Lighten the tint when the mouse is over it
   if (overButton(x, y, w, h)) {
+    mouseOverButton = true;
     tint(lerpColor(col, color(255), 0.25));
   } else {
     tint(col);
@@ -95,6 +138,14 @@ function drawButton(label, x, y, col, w = 220, h = 50) {
 }
 
 function mousePressed() {
+  // Browsers block audio until the user clicks, so unlock it here
+  userStartAudio();
+
+  // Click sound for any button drawn this frame that the mouse is over
+  if (mouseOverButton) {
+    clickSound.play();
+  }
+
   if (currentScreen === "balloonpop") {
     balloonMousePressed();
     return;

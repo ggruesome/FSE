@@ -118,6 +118,7 @@ function flowerDraw() {
     if (gardenNewHighscore) {
       flowerHighscore = gardenScore;
       storeItem("flowerHighscore", flowerHighscore);
+      playHighscoreSound();
     }
     return;
   }
