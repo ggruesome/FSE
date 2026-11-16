@@ -56,7 +56,11 @@ function balloonSetup() {
 
 // Called from draw() in main.js while Balloon Pop is showing
 function balloonDraw() {
-  background(30, 27, 60);
+  if (!gameStarted || gameOver || confirmQuit) {
+    drawSpaceBackground(color(66, 177, 255));
+  } else {
+    background(30, 27, 60);
+  }
 
   if (!gameStarted) {
     drawStartScreen();
@@ -80,6 +84,7 @@ function balloonDraw() {
 
   if (timeLeft === 0) {
     gameOver = true;
+    recordGameResult("balloonpop", score);
     return;
   }
 
@@ -204,19 +209,40 @@ if (frameCount % 120 === 0 && balloons.length < 10) {
     }
   }
 
-  fill(255, 220, 120);
-  stroke("black");
-  strokeWeight(3);
-  textAlign(CENTER, CENTER);
-  textSize(40);
-  text("BALLOON POP", width / 2, 140);
+  drawGameIntroPanel(color(66, 177, 255));
+  push();
+  imageMode(CENTER);
+  tint(color(75, 186, 255));
+  image(balloonImg, 172, 210, 55, 74);
+  tint(color(255, 119, 190));
+  image(balloonImg, 214, 218, 43, 59);
+  noTint();
+  let lightningWidth = 24;
+  let lightningHeight = lightningWidth * (lightningImg.height / lightningImg.width);
+  image(lightningImg, 171, 164, lightningWidth, lightningHeight);
+  imageMode(CORNER);
+  pop();
 
+  fill(255, 220, 120);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textStyle(BOLD);
+  textSize(34);
+  text("BALLOON POP", width / 2, 84);
+
+  fill(170, 214, 255);
+  textStyle(BOLD);
+  textSize(10);
+  text("MISSION 01  •  30 SECOND CHALLENGE", 414, 174);
   fill(255);
-  stroke("black");
-  strokeWeight(3);
-  textSize(20);
-  text("Click the balloons to pop them!", width / 2, 200);
-  text("Pop as many as possible in 30 seconds.", width / 2, 235);
+  textStyle(BOLD);
+  textSize(16);
+  text("Pop the floating fleet!", 414, 201);
+  fill(194, 203, 229);
+  textStyle(NORMAL);
+  textSize(11);
+  text("Tap balloons to score. Watch for fast", 414, 226);
+  text("lightning balloons drifting through space.", 414, 244);
 
   drawButton("START", width / 2, 300, color(40, 160, 230));
   drawButton("MENU", width / 2, 370, color(40, 160, 230));

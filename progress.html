@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c1027">
+    <title>Player Progress | F.M.R. Arcade</title>
+    <link rel="stylesheet" href="progress.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="page-header">
+        <a class="back-link" href="index.html">← Back to arcade</a>
+        <p class="eyebrow">F.M.R. ARCADE <span>/</span> PLAYER LOG</p>
+        <h1>Your <span>progress</span></h1>
+        <p class="intro">Every round counts. Here are your personal bests and recent runs.</p>
+      </header>
+
+      <section class="summary-grid" aria-label="Overall progress">
+        <article class="summary-card">
+          <span class="summary-label">Rounds completed</span>
+          <strong id="round-count">0</strong>
+          <span class="summary-note">Recorded sessions on this device</span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Games tried</span>
+          <strong><span id="games-tried">0</span> <small>/ 3</small></strong>
+          <span class="summary-note">Different games played</span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Most played</span>
+          <strong class="summary-name" id="most-played">—</strong>
+          <span class="summary-note">Your favorite challenge so far</span>
+        </article>
+      </section>
+
+      <section class="section-block" aria-labelledby="game-stats-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE SCOREBOARD</p>
+            <h2 id="game-stats-title">Game stats</h2>
+          </div>
+          <span class="section-mark">✦</span>
+        </div>
+        <div class="game-grid">
+          <article class="game-card balloon-card">
+            <div class="game-title"><span class="game-icon">◉</span><h3>Balloon Pop</h3></div>
+            <div class="game-metrics">
+              <div><span>Personal best</span><strong id="best-balloon">0</strong></div>
+              <div><span>Rounds</span><strong id="plays-balloon">0</strong></div>
+            </div>
+          </article>
+          <article class="game-card garden-card">
+            <div class="game-title"><span class="game-icon">✿</span><h3>Flower Garden</h3></div>
+            <div class="game-metrics">
+              <div><span>Personal best</span><strong id="best-garden">0</strong></div>
+              <div><span>Rounds</span><strong id="plays-garden">0</strong></div>
+            </div>
+          </article>
+          <article class="game-card coin-card">
+            <div class="game-title"><span class="game-icon">$</span><h3>Coin Collector</h3></div>
+            <div class="game-metrics">
+              <div><span>Personal best</span><strong id="best-coins">0</strong></div>
+              <div><span>Rounds</span><strong id="plays-coins">0</strong></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block history-block" aria-labelledby="history-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">YOUR JOURNEY</p>
+            <h2 id="history-title">Recent rounds</h2>
+          </div>
+          <span class="history-caption">Latest 10</span>
+        </div>
+        <ol class="history-list" id="recent-rounds"></ol>
+      </section>
+      <p class="storage-note">Progress is saved locally in this browser.</p>
+    </main>
+    <script src="progress.js"></script>
+  </body>
+</html>

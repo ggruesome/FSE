@@ -92,7 +92,11 @@ function drawToolImage(img, x, y, maxW, maxH) {
 }
 
 function flowerDraw() {
-  background(30, 27, 60);
+  if (!gardenStarted || gardenOver) {
+    drawSpaceBackground(color(91, 220, 154));
+  } else {
+    background(30, 27, 60);
+  }
 
   if (!gardenStarted) {
     drawGardenStartScreen();
@@ -120,6 +124,7 @@ function flowerDraw() {
       storeItem("flowerHighscore", flowerHighscore);
       playHighscoreSound();
     }
+    recordGameResult("flowergarden", gardenScore);
     return;
   }
 
@@ -466,15 +471,31 @@ function overGardenMenuButton() {
 }
 
 function drawGardenStartScreen() {
+  drawGameIntroPanel(color(91, 220, 154));
+
+  push();
+  drawToolImage(wateringCanImg, 157, 212, 72, 65);
+  drawFlower(205, 194, color(255, 143, 191));
+  drawFlower(239, 218, color(188, 145, 255));
+  pop();
+
   fill(255, 220, 120);
   textAlign(CENTER, CENTER);
-  textSize(40);
-  text("GROW GARDEN", width / 2, 140);
+  textStyle(BOLD);
+  textSize(34);
+  text("FLOWER GARDEN", width / 2, 84);
 
+  fill(190, 255, 208);
+  textSize(10);
+  text("MISSION 02  •  COSMIC GARDENER", 415, 174);
   fill(255);
-  textSize(19);
-  text("Fill your watering can, then drag it to a plant.", width / 2, 205);
-  text("Use tools to remove weeds, fertilize, and inspect.", width / 2, 240);
+  textSize(16);
+  text("Bring this little world to life.", 415, 201);
+  fill(194, 203, 229);
+  textStyle(NORMAL);
+  textSize(11);
+  text("Fill your watering can, then care for", 415, 226);
+  text("plants with water, tools, and fertilizer.", 415, 244);
 
   drawButton("START GARDENING", width / 2, 310, color(250, 175, 40));
   drawButton("MENU", width / 2, 375, color(250, 175, 40));

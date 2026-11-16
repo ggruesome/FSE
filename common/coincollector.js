@@ -36,7 +36,11 @@ function coinPreload() {
 }
 
 function coinDraw() {
-  drawCoinBackground();
+  if (!coinGameStarted || coinGameOver) {
+    drawSpaceBackground(color(69, 220, 184));
+  } else {
+    drawCoinBackground();
+  }
 
   if (!coinGameStarted) {
     drawCoinStartScreen();
@@ -57,6 +61,7 @@ function coinDraw() {
     coinGameOver = true;
     draggedCoin = null;
     chestOpen = false;
+    recordGameResult("coincollector", coinScore);
     return;
   }
 
@@ -307,19 +312,53 @@ function moveChestToNewCorner() {
 }
 
 function drawCoinStartScreen() {
+  drawGameIntroPanel(color(69, 220, 184));
+  drawCoinStartArtwork(183, 210);
+
   fill(255, 220, 120);
   textAlign(CENTER, CENTER);
-  textSize(39);
-  text("COIN COLLECTOR", width / 2, 115);
+  textStyle(BOLD);
+  textSize(34);
+  text("COIN COLLECTOR", width / 2, 84);
 
+  fill(155, 255, 226);
+  textSize(10);
+  text("MISSION 03  •  TREASURE RUN", 415, 174);
   fill(255);
-  textSize(19);
-  text("Grab and drag coins into the treasure chest!", width / 2, 175);
-  text("The chest moves after every deposit.", width / 2, 210);
-  text("Collect as many as possible in 30 seconds.", width / 2, 245);
+  textSize(16);
+  text("Recover the cosmic treasure.", 415, 201);
+  fill(194, 203, 229);
+  textStyle(NORMAL);
+  textSize(11);
+  text("Drag coins into the chest. It moves", 415, 226);
+  text("after every deposit. You have 30 seconds.", 415, 244);
 
   drawButton("START", width / 2, 310, color(30, 170, 150));
   drawButton("MENU", width / 2, 375, color(30, 170, 150));
+}
+
+function drawCoinStartArtwork(x, y) {
+  push();
+  noFill();
+  stroke(255, 210, 105, 90);
+  strokeWeight(1);
+  ellipse(x, y, 132, 82);
+  ellipse(x, y, 112, 70);
+
+  drawCoin({ x: x - 43, y: y - 28, size: 25 });
+  drawCoin({ x: x + 47, y: y - 25, size: 22 });
+
+  rectMode(CENTER);
+  noStroke();
+  fill(128, 69, 39);
+  rect(x, y + 20, 84, 40, 8);
+  fill(189, 121, 57);
+  rect(x, y - 7, 91, 24, 8);
+  fill(246, 202, 89);
+  rect(x, y + 4, 13, 24, 3);
+  fill(119, 78, 35);
+  circle(x, y + 2, 4);
+  pop();
 }
 
 function drawCoinGameOver() {
