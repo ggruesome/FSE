@@ -15,12 +15,16 @@ let chestCorner = 0;
 
 let coinHighscore;
 let coinImg;
+let chestSheet;
+
+// chest_sheet.png holds 6 square frames, closed (0) to fully open (5)
+const CHEST_FRAMES = 6;
 
 const chest = {
   x: 590,
   y: 345,
-  w: 150,
-  h: 105
+  w: 120,
+  h: 120
 };
 
 const chestCorners = [
@@ -32,6 +36,7 @@ const chestCorners = [
 
 function coinPreload() {
   coinImg = loadImage(MEDIA_FOLDER + "/coin.png");
+  chestSheet = loadImage(MEDIA_FOLDER + "/chest_sheet.png");
 
   // Highscores
   coinHighscore = getItem("coinHighscore");
@@ -110,7 +115,7 @@ function coinDraw() {
   chestAnimation = lerp(
     chestAnimation,
     chestOpen ? 1 : 0,
-    0.2
+    0.35
   );
 
   drawTreasureChest();
@@ -203,68 +208,40 @@ function drawTreasureChest() {
   if (chestAnimation > 0.1) {
     noStroke();
     fill(255, 210, 80, 55 * chestAnimation);
-    ellipse(chest.x, chest.y + 5, 190, 140);
+    ellipse(chest.x, chest.y, 170, 150);
   }
 
-  // Main chest body
-  stroke(85, 45, 25);
-  strokeWeight(3);
-  fill(125, 67, 36);
-  rect(chest.x, chest.y + 25, chest.w, 62, 10);
+  // Pick a frame of the sprite sheet based on how open the chest is
+  let frame = round(chestAnimation * (CHEST_FRAMES - 1));
+  drawChestFrame(frame, chest.x, chest.y + chest.h / 2, chest.w);
 
-  // Wooden panels
-  stroke(175, 105, 50);
-  strokeWeight(2);
-  line(chest.x - 45, chest.y + 5, chest.x - 45, chest.y + 53);
-  line(chest.x + 45, chest.y + 5, chest.x + 45, chest.y + 53);
-
-  // Dark opening
-  noStroke();
-  fill(35, 25, 40);
-  rect(chest.x, chest.y + 2, chest.w - 15, 28, 5);
-
-  // Coins already collected
+  // Coins already collected peek out once the lid is open
   // Only the top half shows, so the coins look like they sit inside
-  imageMode(CORNER);
-  for (let i = 0; i < min(coinScore, 5); i++) {
-    image(
-      coinImg,
-      chest.x - 54 + (i % 5) * 22, chest.y + 7, 18, 9,
-      0, 0, coinImg.width, coinImg.height / 2
-    );
+  if (frame >= CHEST_FRAMES - 2) {
+    imageMode(CORNER);
+    for (let i = 0; i < min(coinScore, 5); i++) {
+      image(
+        coinImg,
+        chest.x - 41 + (i % 5) * 18, chest.y + 5, 16, 8,
+        0, 0, coinImg.width, coinImg.height / 2
+      );
+    }
   }
-
-  // Animated lid
-  let lidY = chest.y - 13 - chestAnimation * 25;
-
-  push();
-  translate(chest.x, lidY);
-  rotate(-chestAnimation * 0.12);
-
-  stroke(85, 45, 25);
-  strokeWeight(3);
-  fill(180, 105, 48);
-  rect(0, 0, chest.w + 8, 30, 9);
-
-  stroke(230, 160, 75);
-  strokeWeight(2);
-  line(-55, -4, 55, -4);
-
-  pop();
-
-  // Lock
-  noStroke();
-  fill(255, 215, 75);
-  rect(chest.x, chest.y + 17, 20, 25, 4);
-
-  fill(115, 75, 25);
-  ellipse(chest.x, chest.y + 15, 7, 7);
 
   fill(255, 225, 145);
   textAlign(CENTER, CENTER);
   textSize(12);
-  text(chestOpen ? "OPEN!" : "TREASURE", chest.x, chest.y + 80);
+  text(chestOpen ? "OPEN!" : "TREASURE", chest.x, chest.y + 75);
 
+  pop();
+}
+
+// Draw one frame of the chest sprite, centered on x with its base at y
+function drawChestFrame(frame, x, y, size) {
+  let fw = chestSheet.width / CHEST_FRAMES;
+  push();
+  imageMode(CORNER);
+  image(chestSheet, x - size / 2, y - size, size, size, frame * fw, 0, fw, chestSheet.height);
   pop();
 }
 
@@ -273,7 +250,7 @@ function isCoinNearChest(c) {
   return (
     c.x > chest.x - chest.w / 2 - 15 &&
     c.x < chest.x + chest.w / 2 + 15 &&
-    c.y > chest.y - 45 &&
+    c.y > chest.y - chest.h / 2 - 15 &&
     c.y < chest.y + chest.h / 2
   );
 }
@@ -281,10 +258,10 @@ function isCoinNearChest(c) {
 // Deposit area: must release within the chest's actual opening
 function isCoinInsideChest(c) {
   return (
-    c.x > chest.x - chest.w / 2 + 10 &&
-    c.x < chest.x + chest.w / 2 - 10 &&
-    c.y > chest.y - 30 &&
-    c.y < chest.y + 12
+    c.x > chest.x - chest.w / 2 &&
+    c.x < chest.x + chest.w / 2 &&
+    c.y > chest.y - 60 &&
+    c.y < chest.y + 15
   );
 }
 
@@ -341,16 +318,7 @@ function drawCoinStartArtwork(x, y) {
   drawCoin({ x: x - 43, y: y - 28, size: 25 });
   drawCoin({ x: x + 47, y: y - 25, size: 22 });
 
-  rectMode(CENTER);
-  noStroke();
-  fill(128, 69, 39);
-  rect(x, y + 20, 84, 40, 8);
-  fill(189, 121, 57);
-  rect(x, y - 7, 91, 24, 8);
-  fill(246, 202, 89);
-  rect(x, y + 4, 13, 24, 3);
-  fill(119, 78, 35);
-  circle(x, y + 2, 4);
+  drawChestFrame(0, x, y + 40, 90);
   pop();
 }
 
