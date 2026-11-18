@@ -213,13 +213,13 @@ if (frameCount % 120 === 0 && balloons.length < 10) {
   push();
   imageMode(CENTER);
   tint(color(75, 186, 255));
-  image(balloonImg, 172, 210, 55, 74);
+  image(balloonImg, 172, 210, 50, 110);
   tint(color(255, 119, 190));
-  image(balloonImg, 214, 218, 43, 59);
+  image(balloonImg, 214, 218, 40, 90);
   noTint();
-  let lightningWidth = 24;
+  let lightningWidth = 35;
   let lightningHeight = lightningWidth * (lightningImg.height / lightningImg.width);
-  image(lightningImg, 171, 164, lightningWidth, lightningHeight);
+  image(lightningImg, 171, 185, lightningWidth, lightningHeight);
   imageMode(CORNER);
   pop();
 
@@ -277,7 +277,8 @@ function drawGameOver() {
   drawButton("EXIT", width / 2, 360, color(40, 160, 230));
 }
 
-function drawConfirmQuit() {
+// Shared by all three games; col is the game's button color
+function drawConfirmQuit(col = color(40, 160, 230)) {
   fill(255, 220, 120);
   textAlign(CENTER, CENTER);
   textSize(34);
@@ -287,8 +288,8 @@ function drawConfirmQuit() {
   textSize(18);
   text("Your score will be lost.", width / 2, 215);
 
-  drawButton("YES", width / 2 - 125, 290, color(40, 160, 230));
-  drawButton("NO", width / 2 + 125, 290, color(40, 160, 230));
+  drawButton("YES", width / 2 - 125, 290, col);
+  drawButton("NO", width / 2 + 125, 290, col);
 }
 
 // Called from mousePressed() in main.js while Balloon Pop is showing

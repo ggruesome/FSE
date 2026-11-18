@@ -4,6 +4,8 @@ let gardenScore = 0;
 let gardenStartTime = 0;
 let gardenStarted = false;
 let gardenOver = false;
+let gardenConfirmQuit = false;
+let gardenPauseStart = 0;
 let gardenDuration = 90;
 
 let flowerHighscore;
@@ -92,7 +94,7 @@ function drawToolImage(img, x, y, maxW, maxH) {
 }
 
 function flowerDraw() {
-  if (!gardenStarted || gardenOver) {
+  if (!gardenStarted || gardenOver || gardenConfirmQuit) {
     drawSpaceBackground(color(91, 220, 154));
   } else {
     background(30, 27, 60);
@@ -105,6 +107,11 @@ function flowerDraw() {
 
   if (gardenOver) {
     drawGardenGameOver();
+    return;
+  }
+
+  if (gardenConfirmQuit) {
+    drawConfirmQuit(color(250, 175, 40));
     return;
   }
 
@@ -531,6 +538,15 @@ function drawGardenGameOver() {
 }
 
 function flowerMousePressed() {
+  if (gardenConfirmQuit) {
+    if (overButton(width / 2 - 125, 290)) {
+      flowerExitToMenu();
+    } else if (overButton(width / 2 + 125, 290)) {
+      resumeGardenGame();
+    }
+    return;
+  }
+
   if (!gardenStarted || gardenOver) {
     if (overButton(width / 2, 310)) {
       startGardenGame();
@@ -541,7 +557,7 @@ function flowerMousePressed() {
   }
 
   if (overGardenMenuButton()) {
-    flowerExitToMenu();
+    pauseGardenGame();
     return;
   }
 
@@ -564,7 +580,7 @@ function flowerMousePressed() {
 }
 
 function flowerMouseReleased() {
-  if (!gardenStarted || gardenOver || draggedTool === null) {
+  if (!gardenStarted || gardenOver || gardenConfirmQuit || draggedTool === null) {
     draggedTool = null;
     return;
   }
@@ -664,10 +680,38 @@ function startGardenGame() {
 
   gardenStarted = true;
   gardenOver = false;
+  gardenConfirmQuit = false;
+}
+
+// Called from keyPressed() in main.js while Flower Garden is showing
+function flowerKeyPressed() {
+  // Esc only does something while a game is being played
+  if (keyCode !== ESCAPE || !gardenStarted || gardenOver) {
+    return;
+  }
+
+  if (gardenConfirmQuit) {
+    resumeGardenGame();
+  } else {
+    pauseGardenGame();
+  }
+}
+
+function pauseGardenGame() {
+  gardenConfirmQuit = true;
+  gardenPauseStart = millis();
+  draggedTool = null;
+}
+
+function resumeGardenGame() {
+  // Push the start time forward so the paused time doesn't count
+  gardenStartTime += millis() - gardenPauseStart;
+  gardenConfirmQuit = false;
 }
 
 // Reset the game and go back to the main menu
 function flowerExitToMenu() {
+  gardenConfirmQuit = false;
   gardenStarted = false;
   gardenOver = false;
   draggedTool = null;

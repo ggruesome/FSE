@@ -3,6 +3,8 @@ let coinScore = 0;
 let coinStartTime = 0;
 let coinGameStarted = false;
 let coinGameOver = false;
+let coinConfirmQuit = false;
+let coinPauseStart = 0;
 let coinGameDuration = 30;
 
 let draggedCoin = null;
@@ -12,6 +14,7 @@ let lastSpawnTime = 0;
 let chestCorner = 0;
 
 let coinHighscore;
+let coinImg;
 
 const chest = {
   x: 590,
@@ -28,6 +31,8 @@ const chestCorners = [
 ];
 
 function coinPreload() {
+  coinImg = loadImage(MEDIA_FOLDER + "/coin.png");
+
   // Highscores
   coinHighscore = getItem("coinHighscore");
   if (coinHighscore === null) {
@@ -36,7 +41,7 @@ function coinPreload() {
 }
 
 function coinDraw() {
-  if (!coinGameStarted || coinGameOver) {
+  if (!coinGameStarted || coinGameOver || coinConfirmQuit) {
     drawSpaceBackground(color(69, 220, 184));
   } else {
     drawCoinBackground();
@@ -49,6 +54,11 @@ function coinDraw() {
 
   if (coinGameOver) {
     drawCoinGameOver();
+    return;
+  }
+
+  if (coinConfirmQuit) {
+    drawConfirmQuit(color(30, 170, 150));
     return;
   }
 
@@ -180,23 +190,8 @@ function spawnCoin() {
 
 function drawCoin(c) {
   push();
-
-  stroke(255, 220, 100);
-  strokeWeight(3);
-  fill(255, 190, 45);
-  ellipse(c.x, c.y, c.size, c.size);
-
-  stroke(255, 235, 140);
-  strokeWeight(2);
-  noFill();
-  ellipse(c.x, c.y, c.size * 0.72, c.size * 0.72);
-
-  noStroke();
-  fill(140, 85, 20);
-  textAlign(CENTER, CENTER);
-  textSize(c.size * 0.52);
-  text("$", c.x, c.y + 1);
-
+  imageMode(CENTER);
+  image(coinImg, c.x, c.y, c.size, c.size);
   pop();
 }
 
@@ -229,15 +224,13 @@ function drawTreasureChest() {
   rect(chest.x, chest.y + 2, chest.w - 15, 28, 5);
 
   // Coins already collected
+  // Only the top half shows, so the coins look like they sit inside
+  imageMode(CORNER);
   for (let i = 0; i < min(coinScore, 5); i++) {
-    fill(255, 200, 45);
-    stroke(255, 230, 120);
-    strokeWeight(1);
-    ellipse(
-      chest.x - 45 + (i % 5) * 22,
-      chest.y + 12,
-      18,
-      12
+    image(
+      coinImg,
+      chest.x - 54 + (i % 5) * 22, chest.y + 7, 18, 9,
+      0, 0, coinImg.width, coinImg.height / 2
     );
   }
 
@@ -394,6 +387,15 @@ function drawCoinGameOver() {
 
 // Called from mousePressed() in main.js while Coin Collector is showing
 function coinMousePressed() {
+  if (coinConfirmQuit) {
+    if (overButton(width / 2 - 125, 290)) {
+      quitCoinGame();
+    } else if (overButton(width / 2 + 125, 290)) {
+      resumeCoinGame();
+    }
+    return;
+  }
+
   if (!coinGameStarted) {
     if (overButton(width / 2, 310)) {
       startCoinGame();
@@ -429,7 +431,7 @@ function coinMousePressed() {
 
 // Called from mouseReleased() in main.js while Coin Collector is showing
 function coinMouseReleased() {
-  if (!coinGameStarted || coinGameOver || draggedCoin === null) {
+  if (!coinGameStarted || coinGameOver || coinConfirmQuit || draggedCoin === null) {
     return;
   }
 
@@ -463,6 +465,7 @@ function startCoinGame() {
   lastSpawnTime = millis();
   coinGameStarted = true;
   coinGameOver = false;
+  coinConfirmQuit = false;
 
   // Start chest at a random corner
   chestCorner = floor(random(chestCorners.length));
@@ -475,12 +478,41 @@ function startCoinGame() {
   }
 }
 
-// Reset the game and go back to the main menu
-function coinExitToMenu() {
+// Called from keyPressed() in main.js while Coin Collector is showing
+function coinKeyPressed() {
+  // Esc only does something while a game is being played
+  if (keyCode !== ESCAPE || !coinGameStarted || coinGameOver) {
+    return;
+  }
+
+  if (coinConfirmQuit) {
+    resumeCoinGame();
+  } else {
+    coinConfirmQuit = true;
+    coinPauseStart = millis();
+    draggedCoin = null;
+    chestOpen = false;
+  }
+}
+
+function resumeCoinGame() {
+  // Push the timers forward so the paused time doesn't count
+  coinStartTime += millis() - coinPauseStart;
+  lastSpawnTime += millis() - coinPauseStart;
+  coinConfirmQuit = false;
+}
+
+function quitCoinGame() {
+  coinConfirmQuit = false;
   coinGameStarted = false;
-  coinGameOver = false;
   coins = [];
   draggedCoin = null;
   coinScore = 0;
+}
+
+// Reset the game and go back to the main menu
+function coinExitToMenu() {
+  quitCoinGame();
+  coinGameOver = false;
   currentScreen = "menu";
 }

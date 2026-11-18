@@ -1,4 +1,3 @@
-const MEDIA_FOLDER = 'media';
 const PROGRESS_STORAGE_KEY = "arcadeResults";
 const PROGRESS_TOTAL_KEY = "arcadeRoundsPlayed";
 const PROGRESS_GAME_COUNTS_KEY = "arcadeGameCounts";
@@ -8,6 +7,14 @@ let gameMusic;
 let highscoreSound;
 let clickSound;
 let mouseOverButton = false;
+
+// Hover animation state for the menu card icons
+let menuHovered = { balloon: false, flower: false, coin: false };
+let balloonPopStart = -1000;
+let balloonInflateStart = -1000;
+let flowerBloom = 0;
+let flowerSpin = 0;
+let coinSpin = 0;
 
 function preload() {
   buttonImg = loadImage(MEDIA_FOLDER + "/button.png");
@@ -171,6 +178,7 @@ function drawMenuCard(x, title, subtitle, highscore, accent, icon) {
   fill(accent);
   rect(x, hovered ? y - 123 : y - 126, cardWidth - 26, 5, 3);
 
+  updateMenuHover(icon, hovered);
   drawMenuIcon(icon, x, (hovered ? y - 3 : y) - 72, accent);
 
   fill(255);
@@ -197,15 +205,49 @@ function drawMenuCard(x, title, subtitle, highscore, accent, icon) {
   pop();
 }
 
+// Start or stop an icon's animation when the mouse enters or leaves its card
+function updateMenuHover(icon, hovered) {
+  if (hovered && !menuHovered[icon]) {
+    if (icon === "balloon") {
+      balloonPopStart = frameCount;
+      popSound.play();
+    }
+  } else if (!hovered && menuHovered[icon]) {
+    if (icon === "balloon") {
+      balloonInflateStart = frameCount;
+    }
+  }
+  menuHovered[icon] = hovered;
+}
+
 function drawMenuIcon(icon, x, y, accent) {
   push();
   if (icon === "balloon") {
     imageMode(CENTER);
     tint(accent);
-    image(balloonImg, x, y, 44, 58);
+    if (menuHovered.balloon) {
+      // Play the pop gif once, then leave the spot empty. Same frame
+      // offset and placement as the in-game pop (see balloonpop.js)
+      let f = floor((frameCount - balloonPopStart + 3) / 2);
+      if (f < popGif.numFrames()) {
+        popGif.setFrame(f);
+        let balloonY = y - 5 - 35 + 70 * 0.28;
+        imageMode(CORNER);
+        image(popGif, x - 35, balloonY - 35, 70, 70);
+      }
+    } else {
+      // Grow back with a little overshoot after the mouse leaves
+      let t = min(1, (frameCount - balloonInflateStart) / 15);
+      let s = 1 + 2.7 * pow(t - 1, 3) + 1.7 * pow(t - 1, 2);
+      image(balloonImg, x, y - 5 + 35 * (1 - s), 35 * s, 70 * s);
+    }
     noTint();
     imageMode(CORNER);
   } else if (icon === "flower") {
+    // Petals open up and twirl while hovered
+    flowerBloom = lerp(flowerBloom, menuHovered.flower ? 1 : 0, 0.15);
+    flowerSpin += flowerBloom * 0.05;
+
     stroke(105, 220, 143);
     strokeWeight(3);
     line(x, y + 12, x, y + 30);
@@ -213,26 +255,25 @@ function drawMenuIcon(icon, x, y, accent) {
     fill(105, 220, 143);
     ellipse(x - 7, y + 20, 12, 6);
     ellipse(x + 7, y + 25, 12, 6);
+    let petalDistance = 11 + flowerBloom * 3;
+    let petalSize = 12 + flowerBloom * 3;
     for (let i = 0; i < 6; i++) {
+      let angle = TWO_PI * i / 6 + flowerSpin;
       fill(accent);
-      circle(x + cos(TWO_PI * i / 6) * 11, y + sin(TWO_PI * i / 6) * 11, 12);
+      circle(x + cos(angle) * petalDistance, y + sin(angle) * petalDistance, petalSize);
     }
     fill(255, 225, 119);
-    circle(x, y, 11);
+    circle(x, y, 11 + flowerBloom * 2);
   } else {
-    noStroke();
-    fill(255, 202, 76);
-    circle(x, y, 48);
-    noFill();
-    stroke(255, 231, 153);
-    strokeWeight(2);
-    circle(x, y, 36);
-    noStroke();
-    fill(128, 79, 24);
-    textAlign(CENTER, CENTER);
-    textStyle(BOLD);
-    textSize(25);
-    text("$", x, y - 1);
+    // Spin while hovered, then settle facing forward again
+    if (menuHovered.coin) {
+      coinSpin += 0.15;
+    } else {
+      coinSpin = lerp(coinSpin, round(coinSpin / PI) * PI, 0.2);
+    }
+    imageMode(CENTER);
+    image(coinImg, x, y, max(2, 48 * abs(cos(coinSpin))), 48);
+    imageMode(CORNER);
   }
   pop();
 }
@@ -252,9 +293,9 @@ function isGameActive() {
   if (currentScreen === "balloonpop") {
     return gameStarted && !gameOver && !confirmQuit;
   } else if (currentScreen === "flowergarden") {
-    return gardenStarted && !gardenOver;
+    return gardenStarted && !gardenOver && !gardenConfirmQuit;
   } else if (currentScreen === "coincollector") {
-    return coinGameStarted && !coinGameOver;
+    return coinGameStarted && !coinGameOver && !coinConfirmQuit;
   }
   return false;
 }
@@ -356,5 +397,9 @@ function mouseReleased() {
 function keyPressed() {
   if (currentScreen === "balloonpop") {
     balloonKeyPressed();
+  } else if (currentScreen === "coincollector") {
+    coinKeyPressed();
+  } else if (currentScreen === "flowergarden") {
+    flowerKeyPressed();
   }
 }

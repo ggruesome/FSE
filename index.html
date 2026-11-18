@@ -10,6 +10,10 @@
 
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
+    <script>
+      // p5 Studio provides MEDIA_FOLDER itself; define it here for plain browser runs.
+      if (typeof MEDIA_FOLDER === "undefined") var MEDIA_FOLDER = "media";
+    </script>
   </head>
 
   <body>
